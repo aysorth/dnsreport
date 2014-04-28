@@ -11,6 +11,7 @@ from dns import resolver
 from dns import reversename
 
 parser = argparse.ArgumentParser(description='Query DNS for extra data')
+parser.add_argument('-s', dest='short', action='store_true', help='Short output')
 parser.add_argument('--no-color', dest='color', action='store_false', help='Prevent from using colors')
 parser.add_argument('target', nargs='+', help='Targets to scan')
 parser.add_argument('-n', dest='ns', help='Nameserver to query')
@@ -88,6 +89,17 @@ def makereport(domain):
                         except:
                             pass
 
+def makeshortreport(domain):
+    print(RED + domain + ENDC + " using nameserver " + BLUE + nameserver + ENDC)
+    for t in standard_record_types:
+        try:
+            answer = resolver.query(domain, t)
+        except:
+            pass
+        else:
+            for index, line in enumerate(answer):
+                print(t + '\t' + str(line))
+
 def revdns(ip, inmakereport = False):
     try:
         inaddr = reversename.from_address(ip)
@@ -126,7 +138,10 @@ for t in args.target:
         if(isTargetIp(t)):
             revdns(t)
         elif(isTargetDomain(t)):
-            makereport(t)
+            if args.short:
+                makeshortreport(t)
+            else:
+                makereport(t)
         else:
             parser.print_help()
             print("\nTarget has to be either a valid IP address or a domain.")
